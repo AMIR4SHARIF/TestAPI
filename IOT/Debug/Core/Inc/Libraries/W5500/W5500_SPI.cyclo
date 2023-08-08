@@ -1,7 +1,0 @@
-../Core/Inc/Libraries/W5500/W5500_SPI.c:14:6:W5500_Select	1
-../Core/Inc/Libraries/W5500/W5500_SPI.c:18:6:W5500_Unselect	1
-../Core/Inc/Libraries/W5500/W5500_SPI.c:22:6:W5500_Restart	1
-../Core/Inc/Libraries/W5500/W5500_SPI.c:29:6:W5500_ReadBuff	1
-../Core/Inc/Libraries/W5500/W5500_SPI.c:33:6:W5500_WriteBuff	1
-../Core/Inc/Libraries/W5500/W5500_SPI.c:37:9:W5500_ReadByte	1
-../Core/Inc/Libraries/W5500/W5500_SPI.c:43:6:W5500_WriteByte	1

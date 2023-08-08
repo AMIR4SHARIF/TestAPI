@@ -1,5 +1,0 @@
-../Core/Inc/Libraries/AHT20/AHT20.c:37:6:AHT20_Init	16	static
-../Core/Inc/Libraries/AHT20/AHT20.c:41:6:AHT20_SoftReset	24	static
-../Core/Inc/Libraries/AHT20/AHT20.c:47:6:AHT20_Measure	32	static
-../Core/Inc/Libraries/AHT20/AHT20.c:77:8:AHT20_Temp	16	static
-../Core/Inc/Libraries/AHT20/AHT20.c:84:8:AHT20_Humid	16	static
