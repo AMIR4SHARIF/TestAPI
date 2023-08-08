@@ -1,0 +1,178 @@
+//__________________________________________________________________________________________
+
+/*
+ *               @ HTTP Request maker and Response parser
+ *
+ *   @Author:  AMIR SHARIF  &  REZA ABDI
+ *
+ *   @Copyright (C) AMIR-SHARIF & REZA-ABDI , 2023 SUMMER
+ *
+ *
+ *  This driver helps you to create an HTTP request as a string in C language
+ *  using the functions of this library or receive the server's response as a string
+ *  and parse it to a data structure . Pay attention that the input of
+ *  the HTTP_make functions is a structure of data and its output is a string.
+ *  To parse the response, its input is a string and its output is a structure of data,
+ *  so these functions do not send and receive HTTP requests in any way.
+ */
+
+//__________________________________________________________________________________________
+
+
+
+#ifndef HTTP__H
+#define HTTP__H
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+/*---------------------------------------*/
+// Included Libraries
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdbool.h>
+// Defines and states
+
+    #define MAX_BUF_SIZE	256 
+    #define MID_BUF_SIZE	128 
+    #define MIN_BUF_SIZE	64 
+    // HTTP Most Used ports
+    #define HTTP_SERVER_PORT		    80
+    #define HTTPS_SERVER_PORT	    	433	
+    #define DATABASE_SERVER_PORT		2082
+
+    // HTTP Method 
+    #define		METHOD_ERR		  0		    /**< Error    Method.  */
+    #define		METHOD_GET		  1		    /**< GET      Method.  */
+    #define		METHOD_HEAD	  	2		    /**< HEAD     Method.  */
+    #define		METHOD_POST		  3		    /**< POST     Method.  */
+    #define 	METHOD_PUT      4       /**< PUT      Method.  */
+    #define 	METHOD_DELETE   5       /**< DELETE   Method.  */
+    #define 	METHOD_CONNECT  6       /**< CONNECT  Method.  */
+    #define 	METHOD_OPTIONS  7       /**< OPTIONS  Method.  */
+    #define 	METHOD_TRACE    8       /**< TRACE    Method.  */
+
+    // HTTP content type 
+    #define		PTYPE_ERR		    0	    	/**< Error file. */
+    #define		PTYPE_HTML		  1		    /**< HTML file.  */
+    #define   PTYPE_CSS       2       /**< CSS file.   */
+    #define		PTYPE_JS	    	3	      /**< JavaScript file.	*/
+    #define		PTYPE_JSON		  4		    /**< JSON file.	 */
+    #define   PTYPE_XML       5       /**< XML file.   */
+    #define		PTYPE_TEXT		  6		    /**< TEXT file.  */
+    #define 	PTYPE_CGI		    8		    /**< CGI file.   */
+    #define		PTYPE_FLASH	  	7		    /**< FLASH file. */
+    #define		PTYPE_NOTHING	  127		  /**< No content. */
+     
+    // HTTP content type attrbiut name
+    #define		NTYPE_HTML		  "text/html"		                    /**< HTML file.  */
+    #define   NTYPE_CSS       "text/css"                        /**< CSS file.   */
+    #define		NTYPE_JS	    	"application/javascript"          /**< JavaScript file.	*/
+    #define		NTYPE_JSON		  "application/json"		            /**< JSON file.	 */
+    #define   NTYPE_XML       "application/xml"                 /**< XML file.   */
+    #define		NTYPE_TEXT		  "text/plain"		                  /**< TEXT file.  */
+    #define 	NTYPE_CGI		    "application/x-cgi"		            /**< CGI file.   */
+    #define		NTYPE_FLASH	  	"application/x-shockwave-flash"	  /**< FLASH file. */
+
+    // HTTP response statue Code
+    #define   STATUS_CONTINUE           100
+    #define   STATUS_SWITCH             101
+    #define   STATUS_OK                 200
+    #define   STATUS_CREATED            201
+    #define   STATUS_ACCEPTED           202
+    #define   STATUS_NON_AUTH           203
+    #define   STATUS_NO_CONTENT         204
+    #define   STATUS_RES_CONTENT        205
+    #define   STATUS_PARTIAL_CONTENT    206
+    #define   STATUS_MUL_CHOICES        300
+    #define   STATUS_MV_PERM            301
+    #define   STATUS_MV_TEMP            302
+    #define   STATUS_SEE_OTHER          303
+    #define   STATUS_NOT_MODIF          304
+    #define   STATUS_USE_PROXY          305
+    #define   STATUS_UNUSED             306
+    #define   STATUS_TEMP_REDIRECT      307
+    #define   STATUS_BAD_REQ            400
+    #define   STATUS_UNAUTH             401
+    #define   STATUS_PAY_REQ            402
+    #define   STATUS_FORBIDDEN          403
+    #define   STATUS_NOT_FOUND          404
+    #define   STATUS_METH_NOT_ALLOWED   405
+    #define   STATUS_NOT_ACCEPT         406
+    #define   STATUS_PROXY_AUTH         407
+    #define   STATUS_REQ_TIMEOUT        408
+    #define   STATUS_CONFLICT           409
+    #define   STATUS_GONE               410
+    #define   STATUS_LENGHTH_REQ        411
+    #define   STATUS_INT_SERR           500
+    #define   STATUS_NOT_IMPL           501
+    #define   STATUS_BAD_GATEWAY        502
+    #define   STATUS_SERV_UNAVAIL       503
+    #define   STATUS_GETAWAY_TIMEOUT    504
+    #define   STATUS_HTTP_NOT_SUP       505
+
+ //char month_name[12][4]= {"Jan","Feb","Mar","Apr",
+                               "May","Jun","Jul","Aug",
+                               "Sep","Oct","Nov","Dec"};
+ //char weekday_name[7][4]={"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
+// Structure Of HTTP data
+
+/*
+      $: this sign means this parameter is neccessary and you should defined it
+      @param $ METHOD: you must put 1-8 or methode-name as defined above.
+      @param $ TYPE: put any #number type of content defined as above. put 127 if there is no content.
+      @param   DATE[7]: it's refer to Date, put 0 if you won't use it (note that put only 2 last digit of year)
+      @param   API[]: this is a buffer to putting API token to contract with URI. put NULL for no API.
+      @param $ URI[]: a string that relates to addresing URI, will be defined in request line of http header.
+      @param   PORT: this is port number if you want to send reques to specified port, put 0 for no any port.
+      @param $ HOST[]: to addresing host you should fill this string with host name.
+*/
+typedef struct _st_http_request
+{
+	uint8_t	 METHOD;						         /* < request method(METHOD_GET...). */        // put 1-8
+	uint8_t	 TYPE;                       /* < request type(PTYPE_HTML...).   */
+  uint8_t  DATE[7];                    /* < request Date [WD,YY,MO,DD,HH,MM,SS]*/
+  uint8_t  API[MAX_BUF_SIZE];			     /* < request API token.  */
+	uint8_t	 URI[MAX_BUF_SIZE];			     /* < request URI address.  */
+  uint16_t PORT;                       /* < request HOST port. */                    // 0 means no port
+	uint8_t	 HOST[MAX_BUF_SIZE];         /* < request HOST name.  */
+}st_http_request;
+
+typedef struct _st_http_response
+{
+  uint16_t   STATUS;           /* < response status code.           */
+  uint8_t    TYPE;             /* < response type(PTYPE_HTML...).   */
+  uint16_t   CONT_LEN;         /* < response content lenth.         */
+  uint8_t    *BODY;            /* < response body.                  */
+}st_http_response;
+
+
+/*    Prototype of functions    */  //------------------------------
+
+//REQUEST Functions
+int8_t HTTP_REQ_make(st_http_request REQ, uint8_t* body, uint8_t* buf);
+uint8_t HTTP_REQ_methode_maker(uint8_t method , char* tbuf);
+uint8_t HTTP_REQ_uri_maker(const uint8_t* uri, const uint8_t* api, char * tbuf);
+uint8_t HTTP_REQ_hostname_maker(const uint8_t* host, uint16_t port, char * tbuf);
+uint8_t HTTP_REQ_date_maker(uint8_t date[7], char * tbuf);
+uint8_t HTTP_REQ_content_maker(uint8_t ptype,uint16_t contsize, char *tbuf);
+
+//RESPONSE Functions
+int8_t HTTP_RES_parse(const uint8_t *response, st_http_response *RES);
+uint16_t HTTP_RES_extract_Status_Code(const uint8_t *response);
+uint32_t HTTP_RES_extract_Content_Length(const uint8_t *response);
+uint8_t  HTTP_RES_extract_Content_Type(const uint8_t  * response);
+uint8_t  HTTP_RES_extract_Body(const uint8_t  * response,uint8_t *resBody);
+
+//OTHER Functions
+void HTTP_ERROR_HANDLER(int8_t errCode);
+
+/*----------------------------------------*/
+#ifdef __cplusplus
+}
+#endif
+
+#endif

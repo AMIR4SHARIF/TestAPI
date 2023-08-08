@@ -1,0 +1,23 @@
+#include "http.h"
+
+//------------------------------------------------------------------------------------------------------------------
+int main() {
+    const char *response = "HTTP/1.1 400 Bad Request\r\n"
+                           "Content-Type: application/json\r\n"
+                           "Content-Length: 68\r\n"
+                           "\r\n"
+                           "{\r\n"
+                           "  \"erdffffffffffffffffffffror\": \"Invalid input\",\r\n"
+                           "  \"message\": \"The 'age' field must be a positive integer.\"\r\n"
+                           "}";
+
+    st_http_response RES; // Assuming you have declared an instance of the struct
+
+    HTTP_RES_parse(response, &RES);
+    printf("Statuse = %d\n",RES.STATUS);
+    printf("Content-Length = %d\n",RES.CONT_LEN);
+    printf("Content_Type = %d\n",RES.TYPE);
+    printf("Body = %s\n",RES.BODY);
+    return 0;
+}
+//------------------------------------------------------------------------------------------------------------------

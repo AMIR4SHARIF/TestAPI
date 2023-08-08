@@ -1,0 +1,390 @@
+//__________________________________________________________________________________________
+
+/*
+ *               @ HTTP Request maker and Response parser
+ *
+ *   @Author:  AMIR SHARIF  &  REZA ABDI
+ *
+ *   @Copyright (C) AMIR-SHARIF & REZA-ABDI , 2023 SUMMER
+ *
+ *
+ *  This driver helps you to create an HTTP request as a string in C language
+ *  using the functions of this library or receive the server's response as a string
+ *  and parse it to a data structure . Pay attention that the input of
+ *  the HTTP_make functions is a structure of data and its output is a string.
+ *  To parse the response, its input is a string and its output is a structure of data,
+ *  so these functions do not send and receive HTTP requests in any way.
+ */
+
+//__________________________________________________________________________________________
+
+#include "HTTP.h"
+
+/*
+  hettp request maker with Header and Body
+  param1  structure of a request
+  param2  URI addre
+  param3  output
+*/
+int8_t HTTP_REQ_make(st_http_request REQ, uint8_t * body, uint8_t * buf) {
+    char tbuf[MAX_BUF_SIZE]; // a buffer to save and storing data
+ /*-----------------------------------   1   ---------------------------------------------*/
+    // find method and put it in output string
+    if (!HTTP_REQ_methode_maker(REQ.METHOD, tbuf)) { //error handler
+        return -11;
+    }
+    strcpy((char*)buf, tbuf); // Copy the method string to the output
+
+ /*-----------------------------------   2   ---------------------------------------------*/
+    // put URI and API in output string
+    if (!HTTP_REQ_uri_maker(REQ.URI, REQ.API, tbuf)) {  //error handler
+        return -12;
+    }
+    strcat((char*)buf, tbuf);     // Concatenate the URI and API to the output
+
+ /*-----------------------------------   3   ---------------------------------------------*/
+    strcat((char*)buf, " HTTP/1.1\r\n"); // Concatenate HTTP/1.1
+
+ /*-----------------------------------   4   ---------------------------------------------*/
+    // assigning Host name with it's 
+    if (!HTTP_REQ_hostname_maker(REQ.HOST, REQ.PORT, tbuf)){     //error handler
+        return -13;
+    }
+    strcat((char*)buf, tbuf);
+ /*-----------------------------------   5   ---------------------------------------------*/  
+     if (!HTTP_REQ_date_maker( REQ.DATE , tbuf)){
+        return -14;
+     }
+    strcat((char*)buf, tbuf);
+ /*-----------------------------------   6   ---------------------------------------------*/
+    // Checking content and assign content length and type
+    if (!HTTP_REQ_content_maker( REQ.TYPE, strlen((char*)body), tbuf)) { //error handler
+        return -15;
+    }
+    strcat((char*)buf, tbuf);
+
+ /*-----------------------------------   7   ---------------------------------------------*/
+    // 
+    strcat((char*)buf, "\r\n");
+
+ /*-----------------------------------   8   ---------------------------------------------*/
+    // Concatenate body if there is anything
+    if(strlen((char*)body)>0){
+        strcat((char*)buf, (char*)body);
+        return 1;
+    }else{
+        return 2;
+    }
+    return 0;
+}
+
+// HTTP method maker
+uint8_t HTTP_REQ_methode_maker(uint8_t method, char * tbuf) {
+    switch (method) {
+    case METHOD_GET:
+        tbuf = "GET ";
+        return 1;
+    case METHOD_HEAD:
+        tbuf = "HEAD ";
+        return 2;
+    case METHOD_POST:
+        tbuf = "POST ";
+        return 3;
+    case METHOD_PUT:
+        tbuf = "PUT ";
+        return 4;
+    case METHOD_DELETE:
+        tbuf = "DELETE ";
+        return 5;
+    case METHOD_CONNECT:
+        tbuf = "CONNECT ";
+        return 6;
+    case METHOD_OPTIONS:
+        tbuf = "OPTIONS ";
+        return 7;
+    case METHOD_TRACE:
+        tbuf = "TRACE ";
+        return 8;
+    default:
+        tbuf = "ERROR ";
+        return 0;
+    }
+}
+
+// HTTP URI/API maker
+uint8_t HTTP_REQ_uri_maker(const uint8_t* uri, const uint8_t* api, char * tbuf){
+    char str[MID_BUF_SIZE]={0};
+    *tbuf = '\0';
+    if(api!=NULL){
+        sprintf(str,"/api/%s",api);
+        strcpy(tbuf,str);
+    }
+    if(uri!=NULL){
+        sprintf(str,"/%s ",uri);
+        strcat(tbuf,str);
+        return 1;
+    }
+    return 0;
+}
+
+// HTTP Hostname maker
+uint8_t HTTP_REQ_hostname_maker(const uint8_t* host, uint16_t port, char * tbuf){
+    char str[MIN_BUF_SIZE]={0};
+    *tbuf='\0';
+    if(host!=NULL){
+    sprintf(tbuf, "Host: %s",host);
+        if(port>0){
+            strcat(tbuf,":");
+            itoa(port,str,10);
+            strcat(tbuf,str);
+        }
+        strcat(tbuf,"\r\n");
+        return 1;
+    }
+    return 0;
+}
+
+// HTTP Date maker
+uint8_t HTTP_REQ_date_maker(uint8_t date[7], char * tbuf){
+    *tbuf='\0';
+    if(date[0] != 0 && date[2] != 0 && date[3] != 0){
+        if(!(date[0]>=0 && date[0]<=7)) return 0;
+        else if(!(date[1]>=0 && date[1]<=99)) return 0;
+        else if(!(date[2]>=1 && date[2]<=12)) return 0;
+        else if(!(date[3]>=1 && date[3]<=31)) return 0;
+        else if(!(date[4]>=0 && date[4]<=23)) return 0;
+        else if(!(date[5]>=0 && date[5]<=59)) return 0;
+        else if(!(date[6]>=0 && date[6]<=59)) return 0;
+        else{
+        sprintf(tbuf, "Date: %s, %02d %s 20%02d %02d:%02d:%02d\r\n",Weekday_name[date[0]-1],date[3],Month_name[date[2]-1],date[3],date[4],date[5],date[6]);
+        return 1;
+        }
+    }
+    return 2;
+}
+
+
+// HTTP content maker
+uint8_t HTTP_REQ_content_maker(uint8_t ptype,uint16_t contsize, char *tbuf) {
+    char str[MID_BUF_SIZE]={0};
+    sprintf(str, "Content-Length: %zu\r\n", contsize); //Contract Content-Length
+    strcpy(tbuf,str);
+    if(contsize>0 && ptype!=PTYPE_NOTHING){
+        strcat(tbuf,"Content-type: ");
+        *str='\0';
+        switch (ptype) { 
+        case PTYPE_HTML:
+            strcpy(str , NTYPE_HTML);
+            break;
+        case PTYPE_CSS:
+        	strcpy(str , NTYPE_CSS);
+            break;
+        case PTYPE_JS:
+        	strcpy(str , NTYPE_JS);
+            break;
+        case PTYPE_JSON:
+        	strcpy(str , NTYPE_JSON);
+            break;
+        case PTYPE_XML:
+        	strcpy(str , NTYPE_XML);
+            break;
+        case PTYPE_TEXT:
+        	strcpy(str , NTYPE_TEXT);
+            break;
+        case PTYPE_CGI:
+        	strcpy(str , NTYPE_CGI);
+            break;
+        case PTYPE_FLASH:
+        	strcpy(str , NTYPE_FLASH);
+            break;
+        default:
+            return 0;
+        }
+        strcat(str,"\r\n");
+        strcat(tbuf,str);
+        return 2;
+    }
+    return 1;
+}
+
+// ---------------------------------------------------------------------------------------------
+
+/*   http Response parser 
+func 1 = Main Function To Parse Response
+func 2 = Extract Status Code 
+func 3 = Extract Content Length
+func 4 = Extract Content Type
+func 5 = Extract Body 
+*/
+
+// HTTP response parsing
+int8_t HTTP_RES_parse(const uint8_t * response, st_http_response * RES) {
+    RES -> STATUS = HTTP_RES_extract_Status_Code(response);
+    //error handler for Status Code extract
+    if (RES -> STATUS == 0) {
+        return -31;             // Return -31 to indicate an error
+    }
+
+    RES -> CONT_LEN = HTTP_RES_extract_Content_Length(response);
+    //error handler for Content Length extract
+    if (RES -> CONT_LEN == 0) {
+        return -32;             // Return -32 to indicate an error
+    }
+
+    RES -> TYPE = HTTP_RES_extract_Content_Type(response);
+    //error handler for Content Length extract
+    if (RES -> TYPE == 0) {
+        return -33;             // Return -33 to indicate an error
+    }
+
+    if(!HTTP_RES_extract_Body(response, RES -> BODY)){
+    	return -34;
+    }
+
+}
+
+//Status Code Extract Function
+uint16_t HTTP_RES_extract_Status_Code(const uint8_t * response) {
+    // Find the space after "HTTP/1.1"
+    const char * statusCodeStart = strstr((char *)response, " ") + 1;
+    // Find the space after the status code
+    const char * statusCodeEnd = strstr(statusCodeStart, " ");
+    //Status code erorr handeler
+    if (statusCodeStart == NULL) {
+        //Status code not found in the response
+        return 0;
+    }
+    // Calculate the length of the status code
+    int statusCodeLength = statusCodeEnd - statusCodeStart;
+    // Convert the status code string to an integer
+    char statusCodeString[4]; // Maximum 3 digits for the status code (+1 for null terminator)
+    strncpy(statusCodeString, statusCodeStart, statusCodeLength);
+    statusCodeString[statusCodeLength] = '\0';
+    int statusCode = atoi(statusCodeString);
+
+    return statusCode;
+}
+
+//Content Length Extract Function
+uint32_t HTTP_RES_extract_Content_Length(const uint8_t * response) {
+    const char * lengthStart = strstr(response, "Content-Length: ");
+
+    if (lengthStart == NULL) {
+        //printf("Content-Length not found in the response.\n");
+        return 0;
+    }
+
+    // Move the pointer to the start of the content length value (after "Content-Length: ")
+    lengthStart += strlen("Content-Length: ");
+
+    // Extract the content length as an integer
+    int contentLength = 0;
+    while ( * lengthStart >= '0' && * lengthStart <= '9') {
+        contentLength = contentLength * 10 + ( * lengthStart - '0');
+        lengthStart++;
+    }
+
+    return contentLength;
+}
+
+//Content Type Extract Function
+uint8_t HTTP_RES_extract_Content_Type(const uint8_t * response) {
+    static char contentType[MAX_BUF_SIZE]; // Fixed-size buffer
+     char * typeStart = strstr(response, "Content-Type: ");
+
+    if (typeStart == NULL) {
+        //Content-Type not found in the response
+        return 0;
+    }
+
+    // Move the pointer to the start of the content type value (after "Content-Type: ")
+    typeStart += strlen("Content-Type: ");
+
+    // Find the end of the content type value (usually ends with a newline character)
+    const char * typeEnd = strchr(typeStart, '\n');
+
+    // Calculate the length of the content type value (up to the maximum size of the buffer)
+    uint16_t typeLength = typeEnd - typeStart;
+    // Copy the content type value to the buffer
+    memcpy(contentType, typeStart, typeLength);
+
+    // Null-terminate the content type string
+    contentType[typeLength] = '\0';
+
+    // Check the content type and set RES.TYPE accordingly
+    if (strstr(contentType, NTYPE_HTML       )) {
+        return PTYPE_HTML;
+    } else if (strstr(contentType, NTYPE_CSS )) {
+        return PTYPE_CSS;
+    } else if (strstr(contentType, NTYPE_JS  )) {
+        return PTYPE_JS;
+    } else if (strstr(contentType, NTYPE_JSON)) {
+        return PTYPE_JSON;
+    } else if (strstr(contentType, NTYPE_XML )) {
+        return PTYPE_XML;
+    } else if (strstr(contentType, NTYPE_TEXT)) {
+        return PTYPE_TEXT;
+    } else if (strstr(contentType, NTYPE_CGI )) {
+        return PTYPE_CGI;
+    } else if (strstr(contentType, NTYPE_FLASH )) {
+        return PTYPE_FLASH;
+    } else {
+        // If the content type is not recognized, set it to PTYPE_ERR (Error)
+        return PTYPE_ERR;
+    }
+
+}
+////////////// errrrrooooooooooooor
+//Body Extract Function
+uint8_t  HTTP_RES_extract_Body(const uint8_t * response, uint8_t *resBody) {
+    char * bodyStart = strstr((char *)response, "\r\n\r\n");
+    if (bodyStart == NULL) {
+        // Handle body not found appropriately
+        return 0;
+    }
+
+    // Move the pointer to the start of the body (after the \r\n\r\n sequence)
+    bodyStart += 4;
+
+    // Calculate the length of the body
+    uint16_t bodyLength = (uint16_t) strlen(bodyStart);
+
+    // Copy the body content to the buffer
+    memcpy(resBody, bodyStart, bodyLength);
+
+    // Null-terminate the body string
+    resBody[bodyLength] = '\0';
+
+    return 1;
+}
+
+
+// this fonction tells you where is the error
+void HTTP_ERROR_HANDLER(int8_t errCode){
+    switch (errCode){
+        case -11:   
+                printf("Error during making HTTP Request Method, Methode is unvalid or do not exist\r\n");             
+                break;
+        case -12:  
+                printf("Error during making HTTP Request URI/API, URI (or API) is uncleared or didn't assign\r\n");                
+                break;
+        case -13:    
+                printf("Error during making HTTP Header HOST name, Host name is null or other problems\r\n");           
+                break;
+        case -14:    
+                printf("Error during making HTTP Header Date, input numbers are invalid\r\n");           
+                break;       
+        case -15:
+                printf("Error during making HTTP Header Content, Content-Length or Content-type error \r\n");                
+                break;
+        case -31:
+                printf("Error during extracting HTTP Response Status Code, invalid code\r\n");                
+                break;
+        case -32:
+                printf("Error during extracting HTTP Response Content-Length, \r\n");                  
+                break;
+        case -33:
+                printf("Error during extracting HTTP Response Content-Type, \r\n");                  
+                break;        
+    }
+}

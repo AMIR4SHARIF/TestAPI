@@ -1,0 +1,5 @@
+../Core/Inc/Libraries/SNTP/sntp.c:77:8:get_seconds_from_ntp_server	352	static
+../Core/Inc/Libraries/SNTP/sntp.c:221:6:SNTP_init	32	static
+../Core/Inc/Libraries/SNTP/sntp.c:253:8:SNTP_run	64	static
+../Core/Inc/Libraries/SNTP/sntp.c:321:6:calcdatetime	232	static
+../Core/Inc/Libraries/SNTP/sntp.c:409:8:changedatetime_to_seconds	96	static
