@@ -14,7 +14,7 @@ class Sensors(models.Model):
     temp = models.FloatField(default=0.0, null=True)
     humid = models.FloatField(default=0.0, null=True)
     lpg = models.FloatField(default=0.0, null=True)
-    smok = models.FloatField(default=0.0, null=True)
+    smk = models.FloatField(default=0.0, null=True)
     
     # val1 = models.CharField(max_length=50, blank=True, default='')
     # val2 = models.CharField(max_length=50, blank=True, default='')

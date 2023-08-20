@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Proj View</h1>
+    <hr>
+    <div style="border: rgb(0, 250, 250) solid;">
+        <table id="sensor_values_table">
+            <tr>
+                <td>Temp</td>
+                <td id="temp_value"></td>
+            </tr>
+            <tr>
+                <td>humid</td>
+                <td id="humid_value"></td>
+            </tr>
+            <tr>
+                <td>lpg</td>
+                <td id="lpg_value"></td>
+            </tr>
+            <tr>
+                <td>smoke</td>
+                <td id="smok_value"></td>
+            </tr>
+        </table>
+    </div>
+    <br>
+    <div style="border: rgb(250, 133, 0) solid;">
+        <table id="realys_status_table">
+            <tr>
+                <td>
+                    rel 1
+                </td>
+                <td>
+                    <input type="checkbox" name="" id="rel1">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    rel 1
+                </td>
+                <td>
+                    <input type="checkbox" name="" id="rel2">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    rel 1
+                </td>
+                <td>
+                    <input type="checkbox" name="" id="rel3">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    rel 1
+                </td>
+                <td>
+                    <input type="checkbox" name="" id="rel4">
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <script>
+        // token = ''
+        // let url = 'http://127.0.0.1:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors';
+        let url = '{% url "test_json" %}';
+        url = 'api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors/'
+        // url = 'http://185.230.163.241:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors/'
+
+        function update_sensors_data(){
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                let result;
+                // result = response.text()
+                result = response.json()
+                // console.log(result['humid'])
+                // status_code = response.status;
+                // if(status_code != 200) {
+                //     console.log('Error in getting brand info!')
+                //     return false;
+                // }
+                
+                return result
+            })
+            .then(result => {
+                console.log(result);
+                // console.log(result['humid']);
+    
+                let tds = document.getElementById('sensor_values_table').getElementsByTagName('td')
+                
+                tds.temp_value.innerHTML = result['temp']
+                tds.humid_value.innerHTML = result['humid']
+                tds.lpg_value.innerHTML = result['lpg']
+                tds.smok_value.innerHTML = result['smk']
+                // Do something with the result
+    
+            })
+        }
+        update_sensors_data()
+
+        function update_relay_states(){
+            // let relays = document.getElementById('realys_status_table').getElementsByTagName('input').rel1.checked
+            let relays = document.getElementById('realys_status_table').getElementsByTagName('input')//[0].checked 
+            let result = {}
+            // console.log('------')
+            for(let i=1; i<=relays.length; i++){
+                result['rel'+i] = relays[i-1].checked
+                // console.log(relays[i].checked)
+            }
+            // result['rel3'] = false
+            // result['rel4'] = false
+
+            console.log(result)
+            console.log(JSON.stringify(result))
+            
+            let url = 'api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/relays/'
+            // url = 'http://185.230.163.241:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors/'
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body : JSON.stringify(result)
+            }).then(resp=>{
+                console.log(resp.text())
+            })
+        }
+
+        let relays = document.getElementById('realys_status_table').getElementsByTagName('input')//[0].checked 
+        for(let i=0; i<relays.length; i++){
+            relays[i].onclick = update_relay_states
+        }
+    </script>
+</body>
+</html>

@@ -1,7 +1,14 @@
 import requests
 
 url = 'http://127.0.0.1:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors/'
-j = {'time':'2023', 'temp': 1233.1, 'humid': 1.256562, 'lpg': 13, 'smok': 23.2}
+#  http://185.230.163.241:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors/
+
+# ip = '185.230.163.241'
+# url = f'http://{ip}:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors/'
+
+# print(url)
+j = {'time':'11', 'temp': 44, 'humid': 1.256562, 'lpg': 13, 'smk': 21}
+
 resp = requests.post(url=url, json=j)
 
 # print(resp)

@@ -14,7 +14,7 @@ def index(request):
     # return HttpResponse('hello')
 
 def test(request):
-    return JsonResponse({'k0':'v0'}, status=200)
+    return JsonResponse({'k0':'v01'}, status=200)
 
 
 @csrf_exempt

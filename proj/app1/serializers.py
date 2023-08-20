@@ -11,7 +11,7 @@ class SensorsSerializer(serializers.Serializer):
     temp = serializers.FloatField()# default=None
     humid = serializers.FloatField()
     lpg = serializers.FloatField()
-    smok = serializers.FloatField()
+    smk = serializers.FloatField()
  
     # title = serializers.CharField(required=False, allow_blank=True, max_length=100)
     # code = serializers.CharField(style={'base_template': 'textarea.html'})
@@ -30,10 +30,10 @@ class SensorsSerializer(serializers.Serializer):
         Update and return an existing `Snippet` instance, given the validated data.
         """
         instance.time = validated_data.get('time' , 'None')
-        instance.temp = validated_data.get('temp', 2.2)
-        instance.humid = validated_data.get('humid', 2.2)
-        instance.lpg = validated_data.get('lpg', 2.2)
-        instance.smok = validated_data.get('smok', 2.2)
+        instance.temp = validated_data.get('temp', -1.1)
+        instance.humid = validated_data.get('humid', -1.1)
+        instance.lpg = validated_data.get('lpg', -1.1)
+        instance.smk = validated_data.get('smk', -1.1)
         instance.save()
         return instance
     
