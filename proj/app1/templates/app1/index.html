@@ -65,7 +65,27 @@
             </tr>
         </table>
     </div>
-    
+
+    <script>
+        function qq(){
+            fetch("http://127.0.0.1:8000/api/91/sensors/", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Token 669d2ef1eb53685cfe653e7983e4ca660ea1c98a'
+                }
+            })
+            .then(response => {
+                let result;
+                result = response.json()
+                // console.log(result)
+                return result;
+            }).then(res => {
+                console.log(res)
+            })
+        }
+        qq()
+    </script>
     <script>
         // token = ''
         // let url = 'http://127.0.0.1:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors';
@@ -108,7 +128,7 @@
     
             })
         }
-        update_sensors_data()
+        // update_sensors_data()
 
         function update_relay_states(){
             // let relays = document.getElementById('realys_status_table').getElementsByTagName('input').rel1.checked
@@ -139,10 +159,10 @@
             })
         }
 
-        let relays = document.getElementById('realys_status_table').getElementsByTagName('input')//[0].checked 
-        for(let i=0; i<relays.length; i++){
-            relays[i].onclick = update_relay_states
-        }
+        // let relays = document.getElementById('realys_status_table').getElementsByTagName('input')//[0].checked 
+        // for(let i=0; i<relays.length; i++){
+        //     relays[i].onclick = update_relay_states
+        // }
     </script>
 </body>
 </html>

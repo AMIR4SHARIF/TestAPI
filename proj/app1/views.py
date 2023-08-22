@@ -50,9 +50,9 @@ def login(request):
         return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
     
     token, _ = Token.objects.get_or_create(user=user)
-    print(token)
+    print(user, token)
     serializer = UserSerializer(instance=user)
-    print(serializer.data)
+    # print(serializer.data)
     return Response({'token':token.key, 'user':serializer.data['username']})
     
 
@@ -126,14 +126,34 @@ def devices(request):
 
         return Response({"ststus": 'ok'})
     
-
-## -------------------------------------------------
-
-@csrf_exempt
-def sensors_detail(request, token):
+# ------------------------------------------------
+# @csrf_exempt
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def sensors_detail(request, uid):
     
     try:
-        d = Device.objects.get(token=token)
+        # print('*** try')
+        # # d = Device.objects.get(token=token)
+        # # data = JSONParser().parse(request)
+        # try:
+        #     data = JSONParser().parse(request)
+        # except:
+        #     return Response({"devices": ''}, status=status.HTTP_400_BAD_REQUEST)
+        # print('-'*30)
+        # uid = data.get('uid', None)
+        # print(f"{uid = }", uid == None)
+        if uid == None:
+            return Response({"devices": 'uid key required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = request.user
+        print(user)
+        device = user.devices.filter(uid=uid)
+        if not device.exists():
+            print('dev not exist')
+            return Response({"devices": 'uid not exists.'}, status=status.HTTP_404_NOT_FOUND)
+        d = device.first() # Device.objects.get(uid=123)
         s = d.sensors.first()
         
     except Device.DoesNotExist:
@@ -151,26 +171,29 @@ def sensors_detail(request, token):
         serializer = SensorsSerializer(s, data=data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(serializer.data, status=200)
+            # return JsonResponse(serializer.data, status=200)
+            return JsonResponse({"ststus": 'ok'}, status=200)
         return JsonResponse(serializer.errors, status=400)
 
-    # elif request.method == 'PUT':
-    #     data = JSONParser().parse(request)
-    #     serializer = SnippetSerializer(snippet, data=data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return JsonResponse(serializer.data)
-    #     return JsonResponse(serializer.errors, status=400)
-
-    # elif request.method == 'DELETE':
-    #     snippet.delete()
-    #     return HttpResponse(status=204)
-
-@csrf_exempt
-def relays_detail(request, token):
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def relays_detail(request, uid):
     
     try:
-        d = Device.objects.get(token=token)
+        # d = Device.objects.get(token=token)
+        # r = d.relays.first()
+
+        if uid == None:
+            return Response({"devices": 'uid key required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = request.user
+        # print(user)
+        device = user.devices.filter(uid=uid)
+        if not device.exists():
+            print('dev not exist')
+            return Response({"devices": 'uid not exists.'}, status=status.HTTP_404_NOT_FOUND)
+        d = device.first()
         r = d.relays.first()
         
     except Device.DoesNotExist:
@@ -189,8 +212,74 @@ def relays_detail(request, token):
         if serializer.is_valid():
             serializer.save()
             print(serializer.data)
-            return JsonResponse(serializer.data, status=200)
+            # return JsonResponse(serializer.data, status=200)
+            return JsonResponse({"ststus": 'ok'}, status=200)
         return JsonResponse(serializer.errors, status=400)
+
+## -------------------------------------------------
+
+# @csrf_exempt
+# def sensors_detail(request, token):
+    
+#     try:
+#         d = Device.objects.get(token=token)
+#         s = d.sensors.first()
+        
+#     except Device.DoesNotExist:
+#         return HttpResponse(status=404)
+#     except Sensors.DoesNotExist:
+#         return HttpResponse(status=404)
+
+#     if request.method == 'GET':
+#         serializer = SensorsSerializer(s)
+#         return JsonResponse(serializer.data)
+
+#     elif request.method == 'POST':
+#         print("*-"*10)
+#         data = JSONParser().parse(request)
+#         serializer = SensorsSerializer(s, data=data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return JsonResponse(serializer.data, status=200)
+#         return JsonResponse(serializer.errors, status=400)
+
+#     # elif request.method == 'PUT':
+#     #     data = JSONParser().parse(request)
+#     #     serializer = SnippetSerializer(snippet, data=data)
+#     #     if serializer.is_valid():
+#     #         serializer.save()
+#     #         return JsonResponse(serializer.data)
+#     #     return JsonResponse(serializer.errors, status=400)
+
+#     # elif request.method == 'DELETE':
+#     #     snippet.delete()
+#     #     return HttpResponse(status=204)
+
+# @csrf_exempt
+# def relays_detail(request, token):
+    
+#     try:
+#         d = Device.objects.get(token=token)
+#         r = d.relays.first()
+        
+#     except Device.DoesNotExist:
+#         return HttpResponse(status=404)
+#     except Relays.DoesNotExist:
+#         return HttpResponse(status=404)
+
+#     if request.method == 'GET':
+#         serializer = RelaysSerializer(r)
+#         return JsonResponse(serializer.data)
+
+#     elif request.method == 'POST':
+#         print('relays:post')
+#         data = JSONParser().parse(request)
+#         serializer = RelaysSerializer(r, data=data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             print(serializer.data)
+#             return JsonResponse(serializer.data, status=200)
+#         return JsonResponse(serializer.errors, status=400)
 
 
 
