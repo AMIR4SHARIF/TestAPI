@@ -7,4 +7,10 @@ urlpatterns = [
 
     path('api/<str:token>/sensors/', views.sensors_detail, name='sensors'),
     path('api/<str:token>/relays/', views.relays_detail),
+
+    path('signup/', views.signup),
+    path('login/', views.login),
+    path('test_token/', views.test_token),
+
+    path('devices/', views.devices),
 ]

@@ -1,7 +1,15 @@
 from rest_framework import serializers
-# from .models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
-from .models import Sensors, Relays
 
+from django.contrib.auth.models import User
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = User
+        fields = ['id', 'username', 'password']
+
+
+from .models import Sensors, Relays
     
 class SensorsSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)

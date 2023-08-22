@@ -1,12 +1,14 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Device(models.Model):
     uid = models.CharField(max_length=100, blank=True, default='')
     token = models.CharField(max_length=100, blank=True, default='')
     # user  devices
+    user = models.ForeignKey(User, default=None, on_delete=models.CASCADE, related_name='devices')
 
     def __str__(self) -> str:
-        return self.token
+        return self.uid
 
 class Sensors(models.Model):
     time = models.CharField(max_length=50, blank=True, default='')
