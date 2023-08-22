@@ -1,0 +1,84 @@
+###
+POST http://127.0.0.1:8000/signup/ HTTP/1.1
+content-type: application/json
+
+{
+    "username":"user1",
+    "password":"pass1",
+    "name": "sample",
+    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
+}
+
+###
+POST http://127.0.0.1:8000/login/ HTTP/1.1
+content-type: application/json
+
+{
+    "username":"user1",
+    "password":"pass1"
+}
+
+###
+GET http://127.0.0.1:8000/test_token/ HTTP/1.1
+# content-type: application/json
+Authorization: Token 37abe656adb391e1f591eb928c0c80f751fa358f
+
+###
+GET http://127.0.0.1:8000/devices/ HTTP/1.1
+# content-type: application/json
+Authorization: Token 37abe656adb391e1f591eb928c0c80f751fa358f
+
+###
+PUT http://127.0.0.1:8000/devices/ HTTP/1.1
+content-type: application/json
+Authorization: Token 37abe656adb391e1f591eb928c0c80f751fa358f
+
+{"uid" : "1234"}
+
+###
+DELETE  http://127.0.0.1:8000/devices/ HTTP/1.1
+content-type: application/json
+Authorization: Token 37abe656adb391e1f591eb928c0c80f751fa358f
+
+{"uid" : "dev1"}
+
+
+###
+GET http://127.0.0.1:8000/api/1234/sensors/ HTTP/1.1
+# content-type: application/json
+Authorization: Token 37abe656adb391e1f591eb928c0c80f751fa358f
+
+###
+POST http://127.0.0.1:8000/api/1234/sensors/ HTTP/1.1
+content-type: application/json
+Authorization: Token 37abe656adb391e1f591eb928c0c80f751fa358f
+
+{"time":"89", "temp": 1, "humid": 1.25, "lpg": 13, "smk": 23}
+
+###
+GET http://127.0.0.1:8000/api/1234/relays/ HTTP/1.1
+# content-type: application/json
+Authorization: Token 37abe656adb391e1f591eb928c0c80f751fa358f
+
+###
+POST http://127.0.0.1:8000/api/1234/relays/ HTTP/1.1
+content-type: application/json
+Authorization: Token 37abe656adb391e1f591eb928c0c80f751fa358f
+
+{"rel1": true, "rel2": false, "rel3": true, "rel4": true}
+
+
+
+
+
+###
+GET http://185.230.163.241:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors/ HTTP/1.1
+# content-type: application/json
+
+
+# GET http://185.230.163.241:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/relays/ HTTP/1.1
+###
+POST http://185.230.163.241:8000/api/kgthj4a56etj1tujaetj54at1eahu5e4aj5/sensors/ HTTP/1.1
+content-type: application/json
+
+{"time":"1", "temp": 441, "humid": 1.256562, "lpg": 13, "smok": 23}
