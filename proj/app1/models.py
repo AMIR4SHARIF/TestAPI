@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 class Device(models.Model):
     uid = models.CharField(max_length=100, blank=True, default='')
+    version = models.CharField(max_length=100, blank=True, default='')
     token = models.CharField(max_length=100, blank=True, default='')
     # user  devices
     user = models.ForeignKey(User, default=None, on_delete=models.CASCADE, related_name='devices')

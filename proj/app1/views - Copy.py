@@ -6,25 +6,8 @@ from rest_framework.parsers import JSONParser
 
 # Create your views here.
 
-from .models import Device#, Sensors, Relays
-# from .serializers import SensorsSerializer, RelaysSerializer
-
-from pathlib import Path
-# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-import json
-from dataclasses import dataclass, field
-
-from .my_data_classes import *
-# SENSORS_FILE_NAME = 'sensors.json'
-
-
-# 4$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-VALID_VERSIONS = ['1']
-def is_valid_version(v):
-    return v in VALID_VERSIONS
-
-DATA_DIR = Path('media/')
+from .models import Device, Sensors, Relays
+from .serializers import SensorsSerializer, RelaysSerializer
 
 def index(request):
     return render(request, 'app1/index.html')
@@ -55,12 +38,6 @@ def signup(request):
 
         token = Token.objects.create(user=user)
         print(token, token.key)
-
-        # print(DATA_DIR, DATA_DIR.resolve())
-        user_dir = DATA_DIR / user.username
-        # print(user_dir)
-        user_dir.mkdir()
-
         return Response({'token':token.key, 'user':serializer.data})
     
     print(serializer.errors)
@@ -101,17 +78,11 @@ def devices(request):
         if d.count() == 0:
             return Response({"devices": []})
         res = []
-
         for device in d:
-            # print(d)
-            # device_dir = DATA_DIR / request.user.username / device.uid
-            device_dir = DATA_DIR / request.user.username / f"{device.version}-{device.uid}"
-            sensors = Sensors(path=device_dir).read()
-            # print('-------', device_dir, Relays(path=device_dir).read())
-            relays = Relays(path=device_dir).read()
+            sensors = SensorsSerializer(device.sensors.first()).data
+            relays = RelaysSerializer(device.relays.first()).data
             
             res.append({"uid":device.uid, "sensors":sensors, "relays":relays})
-
         return Response({"devices": res})
     
     elif request.method == 'PUT':
@@ -124,25 +95,15 @@ def devices(request):
         if uid == None:
             return Response({"devices": 'uid key required'}, status=status.HTTP_400_BAD_REQUEST)
         
-        version = data.get('version', None)
-        if version == None:
-            return Response({"devices": 'version key required'}, status=status.HTTP_400_BAD_REQUEST)
-        # print(version)
         user = request.user
-        if user.devices.filter(uid=uid, version=version).exists():
+        if user.devices.filter(uid=uid).exists():
             return Response({"devices": 'uid already exists'})
-        
-        if not is_valid_version(version):
-            return Response({"devices": 'version is not valid'})
 
-        device = Device(user=request.user, uid=uid, version=version)
+        device = Device(user=request.user, uid=uid)
         device.save()
+        Sensors(device=device).save()
+        Relays(device=device).save()
         
-        device_dir = DATA_DIR / user.username / f"{version}-{uid}"
-        device_dir.mkdir()
-        Sensors(path=device_dir).save()
-        Relays(path=device_dir).save()
-
         return Response({"ststus": 'ok'})
     
     elif request.method == 'DELETE':
@@ -155,28 +116,13 @@ def devices(request):
         # print(uid)
         if uid == None:
             return Response({"devices": 'uid key required'}, status=status.HTTP_400_BAD_REQUEST)
-        version = data.get('version', None)
-        if version == None:
-            return Response({"devices": 'version key required'}, status=status.HTTP_400_BAD_REQUEST)
         
         user = request.user
         device = user.devices.filter(uid=uid)
         if not device.exists():
             return Response({"devices": 'uid not exists'}, status=status.HTTP_404_NOT_FOUND)
-        
-        if not is_valid_version(version):
-            return Response({"devices": 'version is not valid'})
-        
         # print(device)
         device.delete()
-
-        # device_dir = DATA_DIR / user.username / uid
-        device_dir = DATA_DIR / user.username / f"{version}-{uid}"
-        sensors_file = device_dir / SENSORS_FILE_NAME
-        sensors_file.unlink()
-        relays_file = device_dir / RELAYS_FILE_NAME
-        relays_file.unlink()
-        device_dir.rmdir()
 
         return Response({"ststus": 'ok'})
     
@@ -185,122 +131,135 @@ def devices(request):
 @api_view(['GET', 'POST'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
-def sensors_detail(request, version, uid):
+def sensors_detail(request, uid):
     
     try:
+        # print('*** try')
+        # # d = Device.objects.get(token=token)
+        # # data = JSONParser().parse(request)
+        # try:
+        #     data = JSONParser().parse(request)
+        # except:
+        #     return Response({"devices": ''}, status=status.HTTP_400_BAD_REQUEST)
+        # print('-'*30)
+        # uid = data.get('uid', None)
+        # print(f"{uid = }", uid == None)
         if uid == None:
-            return Response({"devices": 'uid  required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if not is_valid_version(version):
-            return Response({"devices": 'version is not valid'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"devices": 'uid key required'}, status=status.HTTP_400_BAD_REQUEST)
         
         user = request.user
         print(user)
-        device = user.devices.filter(uid=uid, version=version)
+        device = user.devices.filter(uid=uid)
         if not device.exists():
             print('dev not exist')
             return Response({"devices": 'uid not exists.'}, status=status.HTTP_404_NOT_FOUND)
         d = device.first() # Device.objects.get(uid=123)
-        # s = d.sensors.first()
-        device_dir = DATA_DIR / user.username / f"{version}-{uid}"
-        # s = Sensors(path=device_dir).read()
+        s = d.sensors.first()
         
     except Device.DoesNotExist:
         return HttpResponse(status=404)
-    
+    except Sensors.DoesNotExist:
+        return HttpResponse(status=404)
 
     if request.method == 'GET':
-        if version == '1':
-            s = Sensors(path=device_dir)
-            data = s.read()
-        return JsonResponse(data)
+        serializer = SensorsSerializer(s)
+        return JsonResponse(serializer.data)
 
     elif request.method == 'POST':
         print("*-"*10)
         data = JSONParser().parse(request)
-        if version == '1':
-            try:
-                s = Sensors(path=device_dir, data=data)
-            except:
-                return JsonResponse({'detail':'invalid keys'}, status=400)
-        print(s)
-        is_valid, err_resp = s.is_valid()
-        print(is_valid, err_resp)
-        if is_valid:
-            s.save()
+        serializer = SensorsSerializer(s, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            # return JsonResponse(serializer.data, status=200)
             return JsonResponse({"ststus": 'ok'}, status=200)
-        return JsonResponse(err_resp, status=400)
+        return JsonResponse(serializer.errors, status=400)
 
 @api_view(['GET', 'POST'])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
-def relays_detail(request, version, uid):
+def relays_detail(request, uid):
     
     try:
+        # d = Device.objects.get(token=token)
+        # r = d.relays.first()
+
         if uid == None:
-            return Response({"devices": 'uid  required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if not is_valid_version(version):
-            return Response({"devices": 'version is not valid'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"devices": 'uid key required'}, status=status.HTTP_400_BAD_REQUEST)
         
         user = request.user
-        print(user)
-        device = user.devices.filter(uid=uid, version=version)
+        # print(user)
+        device = user.devices.filter(uid=uid)
         if not device.exists():
             print('dev not exist')
             return Response({"devices": 'uid not exists.'}, status=status.HTTP_404_NOT_FOUND)
-        d = device.first() # Device.objects.get(uid=123)
-        # s = d.sensors.first()
-        device_dir = DATA_DIR / user.username / f"{version}-{uid}"
-        # s = Sensors(path=device_dir).read()
+        d = device.first()
+        r = d.relays.first()
         
     except Device.DoesNotExist:
         return HttpResponse(status=404)
-    
+    except Relays.DoesNotExist:
+        return HttpResponse(status=404)
 
     if request.method == 'GET':
-        if version == '1':
-            r = Relays(path=device_dir)
-            print(r)
-            data = r.read()
-            # data = {1:2}
-        return JsonResponse(data)
+        serializer = RelaysSerializer(r)
+        return JsonResponse(serializer.data)
 
     elif request.method == 'POST':
-        print("*-"*10)
+        print('relays:post')
         data = JSONParser().parse(request)
-        if version == '1':
-            try:
-                r = Relays(path=device_dir, data=data)
-            except:
-                return JsonResponse({'detail':'invalid keys'}, status=400)
-        print(r)
-        is_valid, err_resp = r.is_valid()
-        print(is_valid, err_resp)
-        if is_valid:
-            r.save()
+        serializer = RelaysSerializer(r, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            print(serializer.data)
+            # return JsonResponse(serializer.data, status=200)
             return JsonResponse({"ststus": 'ok'}, status=200)
-        return JsonResponse(err_resp, status=400)
-    
-# @api_view(['GET', 'POST'])
-# @authentication_classes([TokenAuthentication, SessionAuthentication])
-# @permission_classes([IsAuthenticated])
-# def relays_detail(request, uid):
+        return JsonResponse(serializer.errors, status=400)
+
+## -------------------------------------------------
+
+# @csrf_exempt
+# def sensors_detail(request, token):
     
 #     try:
-#         # d = Device.objects.get(token=token)
-#         # r = d.relays.first()
-
-#         if uid == None:
-#             return Response({"devices": 'uid key required'}, status=status.HTTP_400_BAD_REQUEST)
+#         d = Device.objects.get(token=token)
+#         s = d.sensors.first()
         
-#         user = request.user
-#         # print(user)
-#         device = user.devices.filter(uid=uid)
-#         if not device.exists():
-#             print('dev not exist')
-#             return Response({"devices": 'uid not exists.'}, status=status.HTTP_404_NOT_FOUND)
-#         d = device.first()
+#     except Device.DoesNotExist:
+#         return HttpResponse(status=404)
+#     except Sensors.DoesNotExist:
+#         return HttpResponse(status=404)
+
+#     if request.method == 'GET':
+#         serializer = SensorsSerializer(s)
+#         return JsonResponse(serializer.data)
+
+#     elif request.method == 'POST':
+#         print("*-"*10)
+#         data = JSONParser().parse(request)
+#         serializer = SensorsSerializer(s, data=data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return JsonResponse(serializer.data, status=200)
+#         return JsonResponse(serializer.errors, status=400)
+
+#     # elif request.method == 'PUT':
+#     #     data = JSONParser().parse(request)
+#     #     serializer = SnippetSerializer(snippet, data=data)
+#     #     if serializer.is_valid():
+#     #         serializer.save()
+#     #         return JsonResponse(serializer.data)
+#     #     return JsonResponse(serializer.errors, status=400)
+
+#     # elif request.method == 'DELETE':
+#     #     snippet.delete()
+#     #     return HttpResponse(status=204)
+
+# @csrf_exempt
+# def relays_detail(request, token):
+    
+#     try:
+#         d = Device.objects.get(token=token)
 #         r = d.relays.first()
         
 #     except Device.DoesNotExist:
@@ -319,7 +278,8 @@ def relays_detail(request, version, uid):
 #         if serializer.is_valid():
 #             serializer.save()
 #             print(serializer.data)
-#             # return JsonResponse(serializer.data, status=200)
-#             return JsonResponse({"ststus": 'ok'}, status=200)
+#             return JsonResponse(serializer.data, status=200)
 #         return JsonResponse(serializer.errors, status=400)
+
+
 

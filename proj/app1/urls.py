@@ -7,9 +7,9 @@ urlpatterns = [
     path('test/', views.test, name='test_json'),
 
     # path('api/<str:token>/sensors/', views.sensors_detail, name='sensors'),
-    path('api/<str:uid>/sensors/', views.sensors_detail, name='sensors'),
+    path('api/<str:version>/<str:uid>/sensors/', views.sensors_detail, name='sensors'),
     # path('api/<str:token>/relays/', views.relays_detail),
-    path('api/<str:uid>/relays/', views.relays_detail),
+    path('api/<str:version>/<str:uid>/relays/', views.relays_detail),
 
     path('signup/', views.signup),
     path('login/', views.login),
