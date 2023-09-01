@@ -1,69 +1,69 @@
 ###
-POST http://127.0.0.1:8000/signup/ HTTP/1.1
+POST http://185.230.163.241:8000/signup/ HTTP/1.1
 content-type: application/json
 
 {
-    "username":"user1",
+    "username":"user2",
     "password":"pass1"
 }
 
 ###
-POST http://127.0.0.1:8000/login/ HTTP/1.1
+POST http://185.230.163.241:8000/login/ HTTP/1.1
 content-type: application/json
 
 {
-    "username":"user1",
+    "username":"user2",
     "password":"pass1"
 }
 
 ###
-GET http://127.0.0.1:8000/test_token/ HTTP/1.1
+GET http://185.230.163.241:8000/test_token/ HTTP/1.1
 # content-type: application/json
-Authorization: Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb
+Authorization: Token ae9ee58f0fe3e2dfccf67a4cd2cb892320110c13
 
 ###
-GET http://127.0.0.1:8000/devices/ HTTP/1.1
+GET http://185.230.163.241:8000/devices/ HTTP/1.1
 # content-type: application/json
-Authorization: Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb
+Authorization: Token ae9ee58f0fe3e2dfccf67a4cd2cb892320110c13
 
 ###
-PUT http://127.0.0.1:8000/devices/ HTTP/1.1
+PUT http://185.230.163.241:8000/devices/ HTTP/1.1
 content-type: application/json
-Authorization: Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb
+Authorization: Token ae9ee58f0fe3e2dfccf67a4cd2cb892320110c13
+
+{"uid" : "d3", "version":"1"}
+
+###
+DELETE  http://185.230.163.241:8000/devices/ HTTP/1.1
+content-type: application/json
+Authorization: Token ae9ee58f0fe3e2dfccf67a4cd2cb892320110c13
 
 {"uid" : "d2", "version":"1"}
 
-###
-DELETE  http://127.0.0.1:8000/devices/ HTTP/1.1
-content-type: application/json
-Authorization: Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb
 
-{"uid" : "d1", "version":"1"}
-
-
-###
-GET http://127.0.0.1:8000/api/1/d2/sensors/ HTTP/1.1
+### /api/version/uid/...
+GET http://185.230.163.241:8000/api/1/d3/sensors/ HTTP/1.1
 # content-type: application/json
-Authorization: Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb
+Authorization: Token ae9ee58f0fe3e2dfccf67a4cd2cb892320110c13
 
 ###
-POST http://127.0.0.1:8000/api/1/d2/sensors/ HTTP/1.1
+POST http://185.230.163.241:8000/api/1/d3/sensors/ HTTP/1.1
 content-type: application/json
-Authorization: Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb
+Authorization: Token ae9ee58f0fe3e2dfccf67a4cd2cb892320110c13
 
-{"time":"1", "temp": 123, "humid": 1.25, "lpg": 13, "smk": 23}
+{"time":"1zzz", "temp": 18, "humid": 1.25, "lpg": 13, "smk": 23}
 
 ###
-GET http://127.0.0.1:8000/api/1/d2/relays/ HTTP/1.1
+GET http://185.230.163.241:8000/api/1/d3/relays/ HTTP/1.1
 # content-type: application/json
-Authorization: Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb
+Authorization: Token ae9ee58f0fe3e2dfccf67a4cd2cb892320110c13
 
 ###
-POST http://127.0.0.1:8000/api/1/d2/relays/ HTTP/1.1
+POST http://185.230.163.241:8000/api/1/d3/relays/ HTTP/1.1
 content-type: application/json
-Authorization: Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb
+Authorization: Token ae9ee58f0fe3e2dfccf67a4cd2cb892320110c13
 
-{"rel1": true, "rel2": true, "rel3": true, "rel4": false}
+{"rel1": false, "rel2": true, "rel3": true, "rel4": false}
 
 
 

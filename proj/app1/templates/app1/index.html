@@ -67,6 +67,25 @@
     </div>
 
     <script>
+        fetch("http://185.230.163.241:8000/test_token/", {//http://127.0.0.1:8000
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Token bae6bda9e69835c49a36a1a15a28bcd98bacfdeb'
+                }
+            }).then(response => {
+                let result;
+                result = response.json()
+                return result;
+            }).then(res => {
+                console.log(res)
+            })
+
+    </script>
+    
+
+    <!-- 22222222222222222222222222222222222 -->
+    <script>
         function qq(){
             fetch("http://127.0.0.1:8000/api/91/sensors/", {
                 method: 'GET',
@@ -84,7 +103,7 @@
                 console.log(res)
             })
         }
-        qq()
+        // qq()
     </script>
     <script>
         // token = ''

@@ -76,7 +76,8 @@ def login(request):
     print(user, token)
     serializer = UserSerializer(instance=user)
     # print(serializer.data)
-    return Response({'token':token.key, 'user':serializer.data['username']})
+    qq = Response({'token':token.key, 'user':serializer.data['username']})
+    return qq
     
 
 from rest_framework.decorators import authentication_classes, permission_classes
